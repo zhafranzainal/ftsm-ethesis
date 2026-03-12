@@ -3,7 +3,19 @@ import * as fs from "fs";
 import * as path from "path";
 
 const BASE_URL = "https://ftsm.ukm.my/ethesis/";
-const OUTPUT_PATH = path.resolve(__dirname, "../theses.json");
+
+const POSSIBLE_PATHS = [
+  path.resolve(__dirname, "../frontend/public/theses.json"),
+  path.resolve(__dirname, "../public/theses.json"),
+];
+
+function getOutputPath(): string {
+  // Use whichever path's directory exists
+  for (const p of POSSIBLE_PATHS) {
+    if (fs.existsSync(path.dirname(p))) return p;
+  }
+  return POSSIBLE_PATHS[1]; // fallback
+}
 
 interface Thesis {
   id: string;
@@ -17,10 +29,14 @@ interface Thesis {
   file: string;
 }
 
-function loadExisting(): Thesis[] {
-  if (fs.existsSync(OUTPUT_PATH)) {
-    const raw = fs.readFileSync(OUTPUT_PATH, "utf-8");
-    return JSON.parse(raw);
+function loadExisting(outputPath: string): Thesis[] {
+  if (fs.existsSync(outputPath)) {
+    const raw = fs.readFileSync(outputPath, "utf-8");
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
   }
   return [];
 }
@@ -34,28 +50,27 @@ async function scrapePage(
   page: any,
   pageNum: number
 ): Promise<Thesis[]> {
-  // The site uses POST with form field "page"
-  await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
+  // Always navigate to base URL fresh, then click to target page
+  await page.goto(BASE_URL, { waitUntil: "networkidle", timeout: 30000 });
 
   if (pageNum > 1) {
-    await page.evaluate((num: number) => {
-      const buttons = document.querySelectorAll<HTMLInputElement>(
-        'input[name="page"]'
-      );
-      for (const btn of buttons) {
-        if (btn.value === String(num)) {
-          btn.click();
-          return;
-        }
-      }
-    }, pageNum);
-    await page.waitForLoadState("domcontentloaded");
+    // Wait for the pagination button to exist
+    await page.waitForSelector(`input[name="page"][value="${pageNum}"]`, { timeout: 10000 });
+
+    // Click the page button and wait for navigation to settle
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: "networkidle", timeout: 30000 }),
+      page.click(`input[name="page"][value="${pageNum}"]`),
+    ]);
   }
 
-  const rows = await page.$$eval(
+  // Wait for table rows
+  await page.waitForSelector("#table-body tr", { timeout: 15000 });
+
+  const rows: Thesis[] = await page.$$eval(
     "#table-body tr",
-    (trs: HTMLTableRowElement[]) => {
-      return trs.map((tr) => {
+    (trs: HTMLTableRowElement[]) =>
+      trs.map((tr) => {
         const tds = tr.querySelectorAll("td");
         const anchor = tds[0]?.querySelector("a");
         const small = tds[0]?.querySelector("small")?.textContent?.trim() ?? "";
@@ -80,23 +95,27 @@ async function scrapePage(
         const year = tds[4]?.textContent?.trim() ?? "";
 
         return { id, title, author, supervisor, degree, center, language, year, file };
-      });
-    }
+      })
   );
 
-  return rows as Thesis[];
+  return rows;
 }
 
 async function main() {
   const fullScrape = process.argv.includes("--full");
-  const existing = loadExisting();
+  const outputPath = getOutputPath();
+  const existing = loadExisting(outputPath);
   const existingKeys = buildExistingSet(existing);
 
+  console.log(`Output path: ${outputPath}`);
   console.log(`Existing entries: ${existing.length}`);
   console.log(`Mode: ${fullScrape ? "FULL scrape" : "INCREMENTAL scrape"}`);
 
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  });
   const page = await context.newPage();
 
   const newEntries: Thesis[] = [];
@@ -107,33 +126,50 @@ async function main() {
   const maxPages = fullScrape ? 84 : 5;
 
   for (let p = 1; p <= maxPages && !stopped; p++) {
-    console.log(`Scraping page ${p}...`);
-    try {
-      const rows = await scrapePage(page, p);
+    console.log(`Scraping page ${p}/${maxPages}...`);
 
-      for (const row of rows) {
-        const key = `${row.id}::${row.title.trim()}`;
-        if (!fullScrape && existingKeys.has(key)) {
-          console.log(`Found existing entry at page ${p} — stopping.`);
-          stopped = true;
-          break;
-        }
-        if (!existingKeys.has(key) && row.title) {
-          newEntries.push(row);
-          existingKeys.add(key); // prevent duplicates within this run
+    let retries = 3;
+    let rows: Thesis[] = [];
+    let success = false;
+
+    while (retries > 0 && !success) {
+      try {
+        rows = await scrapePage(page, p);
+        console.log(`  Got ${rows.length} rows`);
+        success = true;
+      } catch (err: any) {
+        retries--;
+        console.warn(`  Attempt failed (${retries} retries left): ${err.message}`);
+        if (retries > 0) {
+          await new Promise((r) => setTimeout(r, 2000));
+        } else {
+          console.error(`  Skipping page ${p} after 3 failed attempts.`);
         }
       }
+    }
 
-      // Small delay to be respectful
-      await page.waitForTimeout(800);
-    } catch (err) {
-      console.error(`Error on page ${p}:`, err);
+    for (const row of rows) {
+      const key = `${row.id}::${row.title.trim()}`;
+      if (!fullScrape && existingKeys.has(key)) {
+        console.log(`  Found existing entry — stopping incremental scrape.`);
+        stopped = true;
+        break;
+      }
+      if (!existingKeys.has(key) && row.title) {
+        newEntries.push(row);
+        existingKeys.add(key); // prevent duplicates within this run
+      }
+    }
+
+    // Polite delay between pages
+    if (!stopped && p < maxPages) {
+      await new Promise((r) => setTimeout(r, 1200));
     }
   }
 
   await browser.close();
 
-  console.log(`New entries found: ${newEntries.length}`);
+  console.log(`\nNew entries found: ${newEntries.length}`);
 
   if (newEntries.length === 0) {
     console.log("No new entries. Nothing to update.");
@@ -142,8 +178,8 @@ async function main() {
 
   // Prepend new entries (newest first)
   const merged = [...newEntries, ...existing];
-  fs.writeFileSync(OUTPUT_PATH, JSON.stringify(merged, null, 2));
-  console.log(`Saved ${merged.length} total entries to theses.json`);
+  fs.writeFileSync(outputPath, JSON.stringify(merged, null, 2));
+  console.log(`Saved ${merged.length} total entries to ${outputPath}`);
 }
 
 main().catch((err) => {
