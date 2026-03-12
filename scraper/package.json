@@ -1,0 +1,17 @@
+{
+  "name": "ftsm-ethesis-scraper",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "scrape": "ts-node scrape.ts",
+    "scrape:full": "ts-node scrape.ts --full"
+  },
+  "dependencies": {
+    "playwright": "^1.44.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "@types/node": "^20.12.12"
+  }
+}
