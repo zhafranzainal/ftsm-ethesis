@@ -75,7 +75,7 @@ async function scrapePage(
         const anchor = tds[0]?.querySelector("a");
         const small = tds[0]?.querySelector("small")?.textContent?.trim() ?? "";
 
-        // small format: "P113852 • TEE KAI VERN • Assoc. Prof. Dr. Umi Asma' Mokhtar"
+        // small format: "P123456 • RAMLI SARIP • Assoc. Prof. Dr. Izhar Ariff Kashim"
         const parts = small.split("•").map((s: string) => s.trim());
         const id = parts[0] ?? "";
         const author = parts[1] ?? "";

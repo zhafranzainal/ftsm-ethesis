@@ -35,7 +35,7 @@ npx playwright install chromium
 npm run scrape:full
 ```
 
-This scrapes all 84 pages and writes `public/theses.json`. Takes ~5–10 minutes.
+This scrapes all pages and writes `public/theses.json`. Takes ~5–10 minutes.
 
 ### 3. Commit the data
 
@@ -54,7 +54,7 @@ git push
 
 - Go to **Actions → Scrape & Deploy → Run workflow**
 
-That's it. GitHub Actions will handle monthly updates automatically.
+GitHub Actions will handle monthly updates automatically.
 
 ---
 
