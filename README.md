@@ -1,6 +1,6 @@
 # FTSM eThesis Search
 
-Enhanced search for FTSM UKM thesis — filter by degree, research center, year, and language.
+Enhanced search for FTSM UKM theses — filter by degree, research center, year, and language.
 
 🔗 **Live site**: https://zhafranzainal.github.io/ftsm-ethesis/
 
