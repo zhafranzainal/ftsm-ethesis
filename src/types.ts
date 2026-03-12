@@ -4,8 +4,9 @@ export interface Thesis {
   author: string;
   supervisor: string;
   degree: string; // "Master" | "PhD" | ""
-  center: string; // "CYBER" | "SOFTAM" | "CIAT"
+  center: string; // "CYBER" | "SOFTAM" | "CAIT"
   language: string; // "English" | "Malay"
   year: string;
   file: string; // relative PDF path
+  hardcopy: boolean; // true = no PDF, available at library only
 }

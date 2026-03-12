@@ -9,7 +9,7 @@ const THESIS_BASE = "https://ftsm.ukm.my/ethesis/";
 const centerColors: Record<string, string> = {
   CYBER: "#ff6b6b",
   SOFTAM: "#4ecdc4",
-  CIAT: "#ffe66d",
+  CAIT: "#ffe66d",
 };
 
 const degreeColors: Record<string, string> = {
@@ -69,8 +69,12 @@ export function ThesisTable({ theses }: Props) {
               <td>
                 <div className="thesis-title">{t.title}</div>
                 <div className="thesis-meta">
-                  <span className="student-id">{t.id}</span>
-                  <span className="separator">·</span>
+                  {t.id && (
+                    <>
+                      <span className="student-id">{t.id}</span>
+                      <span className="separator">·</span>
+                    </>
+                  )}
                   <span className="author">{t.author}</span>
                   <span className="separator">·</span>
                   <span className="supervisor">{t.supervisor}</span>
@@ -85,7 +89,11 @@ export function ThesisTable({ theses }: Props) {
               <td className="text-center lang">{t.language || <span className="muted">—</span>}</td>
               <td className="text-center year">{t.year || <span className="muted">—</span>}</td>
               <td className="text-center">
-                {t.file ? (
+                {t.hardcopy ? (
+                  <span className="hardcopy-badge" title="Only available in hardcopy at FTSM Library, Level 2 Block H">
+                    📚 Library
+                  </span>
+                ) : t.file ? (
                   <a
                     href={`${THESIS_BASE}${t.file}`}
                     target="_blank"

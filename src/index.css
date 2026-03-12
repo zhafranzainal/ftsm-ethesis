@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap');
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -27,7 +29,9 @@
   --font-mono: 'DM Mono', monospace;
 }
 
-html { font-size: 15px; }
+html {
+  font-size: 15px;
+}
 
 body {
   background: var(--bg);
@@ -170,7 +174,9 @@ body {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.search-input::placeholder { color: var(--text-muted); }
+.search-input::placeholder {
+  color: var(--text-muted);
+}
 
 .search-input:focus {
   outline: none;
@@ -190,7 +196,10 @@ body {
   line-height: 1;
   transition: color 0.15s;
 }
-.clear-btn:hover { color: var(--text-primary); }
+
+.clear-btn:hover {
+  color: var(--text-primary);
+}
 
 .dropdowns {
   display: grid;
@@ -199,11 +208,15 @@ body {
 }
 
 @media (max-width: 768px) {
-  .dropdowns { grid-template-columns: repeat(2, 1fr); }
+  .dropdowns {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 480px) {
-  .dropdowns { grid-template-columns: 1fr; }
+  .dropdowns {
+    grid-template-columns: 1fr;
+  }
 }
 
 .select-wrapper {
@@ -269,6 +282,7 @@ body {
   cursor: pointer;
   transition: all 0.15s;
 }
+
 .reset-btn:hover {
   color: var(--red);
   border-color: var(--red);
@@ -307,22 +321,31 @@ body {
   white-space: nowrap;
 }
 
-.thesis-table th.text-center { text-align: center; }
+.thesis-table th.text-center {
+  text-align: center;
+}
 
 .thesis-table tbody tr {
   border-bottom: 1px solid var(--border-subtle);
   transition: background 0.1s;
 }
 
-.thesis-table tbody tr:last-child { border-bottom: none; }
-.thesis-table tbody tr:hover { background: var(--bg-hover); }
+.thesis-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.thesis-table tbody tr:hover {
+  background: var(--bg-hover);
+}
 
 .thesis-table td {
   padding: 13px 16px;
   vertical-align: middle;
 }
 
-.thesis-table td.text-center { text-align: center; }
+.thesis-table td.text-center {
+  text-align: center;
+}
 
 .thesis-title {
   font-weight: 500;
@@ -365,7 +388,8 @@ body {
   font-size: 0.7rem;
 }
 
-.lang, .year {
+.lang,
+.year {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--text-secondary);
@@ -415,7 +439,11 @@ body {
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .empty-state {
   padding: 80px 0;
@@ -432,8 +460,15 @@ body {
   opacity: 0.5;
 }
 
-.empty-state p { font-size: 0.95rem; margin-bottom: 6px; }
-.empty-state small { color: var(--text-muted); font-size: 0.8rem; }
+.empty-state p {
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.empty-state small {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
 
 .error-state {
   padding: 32px;
@@ -467,4 +502,18 @@ body {
   text-decoration: none;
 }
 
-.footer a:hover { color: var(--accent-hover); }
+.footer a:hover {
+  color: var(--accent-hover);
+}
+
+.hardcopy-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--yellow);
+  background: #d2992218;
+  border: 1px solid #d2992240;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  cursor: default;
+}

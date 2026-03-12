@@ -27,6 +27,7 @@ interface Thesis {
   language: string;
   year: string;
   file: string;
+  hardcopy: boolean; // true = no PDF, available at library only
 }
 
 function loadExisting(outputPath: string): Thesis[] {
@@ -72,32 +73,37 @@ async function scrapePage(
     (trs: HTMLTableRowElement[]) =>
       trs.map((tr) => {
         const tds = tr.querySelectorAll("td");
+
+        // Entries with PDF have an <a> tag; hardcopy-only entries use a <span> with tooltip
         const anchor = tds[0]?.querySelector("a");
-        const small = tds[0]?.querySelector("small")?.textContent?.trim() ?? "";
+        const span = tds[0]?.querySelector("span[data-toggle='tooltip']");
+        const titleEl = anchor ?? span;
 
         // small format: "P123456 • RAMLI SARIP • Assoc. Prof. Dr. Izhar Ariff Kashim"
+        const small = tds[0]?.querySelector("small")?.textContent?.trim() ?? "";
         const parts = small.split("•").map((s: string) => s.trim());
         const id = parts[0] ?? "";
         const author = parts[1] ?? "";
         const supervisor = parts[2] ?? "";
 
-        const rawTitle = anchor?.textContent?.trim() ?? "";
         // Strip university name noise sometimes appended to title
+        const rawTitle = titleEl?.textContent?.trim() ?? "";
         const title = rawTitle
           .replace(/UNIVERSITI KEBANGSAAN MALAYSIA?/gi, "")
           .replace(/\s{2,}/g, " ")
           .trim();
 
         const file = anchor?.getAttribute("href") ?? "";
-        const degree = tds[1]?.textContent?.trim() ?? "";
-        const center = tds[2]?.textContent?.trim() ?? "";
+        const hardcopy = !anchor && !!span;
 
         const rawLanguage = tds[3]?.textContent?.trim() ?? "";
         const language = rawLanguage === "Bhs. Melayu" ? "Malay" : rawLanguage;
 
+        const degree = tds[1]?.textContent?.trim() ?? "";
+        const center = tds[2]?.textContent?.trim() ?? "";
         const year = tds[4]?.textContent?.trim() ?? "";
 
-        return { id, title, author, supervisor, degree, center, language, year, file };
+        return { id, title, author, supervisor, degree, center, language, year, file, hardcopy };
       })
   );
 
