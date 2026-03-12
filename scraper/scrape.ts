@@ -91,7 +91,10 @@ async function scrapePage(
         const file = anchor?.getAttribute("href") ?? "";
         const degree = tds[1]?.textContent?.trim() ?? "";
         const center = tds[2]?.textContent?.trim() ?? "";
-        const language = tds[3]?.textContent?.trim() ?? "";
+
+        const rawLanguage = tds[3]?.textContent?.trim() ?? "";
+        const language = rawLanguage === "Bhs. Melayu" ? "Malay" : rawLanguage;
+
         const year = tds[4]?.textContent?.trim() ?? "";
 
         return { id, title, author, supervisor, degree, center, language, year, file };
