@@ -47,6 +47,7 @@ export function FilterBar({ filters, options, total, filtered, onChange }: Props
 
       {/* Dropdowns */}
       <div className="dropdowns">
+
         <div className="select-wrapper">
           <select value={filters.degree} onChange={(e) => update("degree", e.target.value)} className={selectClass}>
             <option value="">All Degrees</option>
@@ -86,6 +87,16 @@ export function FilterBar({ filters, options, total, filtered, onChange }: Props
           </select>
           <span className="select-arrow">▾</span>
         </div>
+
+        <div className="select-wrapper">
+          <select value={filters.availability} onChange={(e) => update("availability", e.target.value)} className={selectClass}>
+            <option value="">All Formats</option>
+            <option value="pdf">PDF Available</option>
+            <option value="hardcopy">Library Only</option>
+          </select>
+          <span className="select-arrow">▾</span>
+        </div>
+
       </div>
 
       {/* Stats + reset */}
@@ -95,7 +106,7 @@ export function FilterBar({ filters, options, total, filtered, onChange }: Props
         </span>
         {hasActiveFilters && (
           <button
-            onClick={() => onChange({ keyword: "", degree: "", center: "", year: "", language: "" })}
+            onClick={() => onChange({ keyword: "", degree: "", center: "", year: "", language: "", availability: "" })}
             className="reset-btn"
           >
             Clear all filters
@@ -104,4 +115,5 @@ export function FilterBar({ filters, options, total, filtered, onChange }: Props
       </div>
     </div>
   );
+
 }

@@ -7,6 +7,7 @@ export interface Filters {
   center: string;
   year: string;
   language: string;
+  availability: string; // "pdf" | "hardcopy"
 }
 
 export function useTheses(theses: Thesis[]) {
@@ -16,6 +17,7 @@ export function useTheses(theses: Thesis[]) {
     center: "",
     year: "",
     language: "",
+    availability: "",
   });
 
   const options = useMemo(() => {
@@ -33,6 +35,8 @@ export function useTheses(theses: Thesis[]) {
       if (filters.center && t.center !== filters.center) return false;
       if (filters.year && t.year !== filters.year) return false;
       if (filters.language && t.language !== filters.language) return false;
+      if (filters.availability === "pdf" && t.hardcopy) return false;
+      if (filters.availability === "hardcopy" && !t.hardcopy) return false;
       if (kw) {
         const haystack = `${t.title} ${t.author} ${t.supervisor} ${t.id}`.toLowerCase();
         if (!haystack.includes(kw)) return false;
